@@ -1,8 +1,8 @@
 export type SeveranceInput = {
   startDate: string        // YYYY-MM-DD
   endDate: string          // YYYY-MM-DD
-  monthlyBasePay: number   // 기본급
-  bonusMonthly: number     // 성과급 월 환산액
+  threeMonthBasePay: number   // 최근 3개월 기본급 합계
+  threeMonthBonus: number     // 최근 3개월 성과급 합계
   annualLeaveAllowance: number // 연차수당
 }
 
@@ -34,10 +34,10 @@ export const calculateSeverance = (input: SeveranceInput): SeveranceResult => {
 
   const lastThreeMonthsDays = getLastThreeMonthsDays(end)
 
-  // 최근 3개월 급여 합계 (기본급 3개월 + 성과급 3개월분 + 연차수당)
+  // 최근 3개월 급여 합계
   const threeMonthsTotalPay =
-    input.monthlyBasePay * 3 +
-    input.bonusMonthly * 3 +
+    input.threeMonthBasePay +
+    input.threeMonthBonus +
     input.annualLeaveAllowance
 
   // 1일 평균임금

@@ -13,16 +13,16 @@ type FormField = {
 const FORM_FIELDS: FormField[] = [
   { label: '입사일', key: 'startDate', type: 'date' },
   { label: '퇴사일', key: 'endDate', type: 'date' },
-  { label: '월 기본급', key: 'monthlyBasePay', type: 'number', unit: '원', hint: '세전 기준' },
-  { label: '성과급 월 환산액', key: 'bonusMonthly', type: 'number', unit: '원', hint: '없으면 비워두세요' },
+  { label: '최근 3개월 기본급 합계', key: 'threeMonthBasePay', type: 'number', unit: '원', hint: '세전 기준 · 네이버 계산기와 동일한 입력 방식' },
+  { label: '최근 3개월 성과급 합계', key: 'threeMonthBonus', type: 'number', unit: '원', hint: '없으면 비워두세요' },
   { label: '연차수당', key: 'annualLeaveAllowance', type: 'number', unit: '원', hint: '미사용 연차수당 총액, 없으면 비워두세요' },
 ]
 
 const initialForm: SeveranceInput = {
   startDate: '',
   endDate: '',
-  monthlyBasePay: 0,
-  bonusMonthly: 0,
+  threeMonthBasePay: 0,
+  threeMonthBonus: 0,
   annualLeaveAllowance: 0,
 }
 
