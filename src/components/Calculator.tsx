@@ -18,9 +18,11 @@ const FORM_FIELDS: FormField[] = [
   { label: '연차수당', key: 'annualLeaveAllowance', type: 'number', unit: '원', hint: '미사용 연차수당 총액, 없으면 비워두세요' },
 ]
 
+const today = new Date().toISOString().split('T')[0]
+
 const initialForm: SeveranceInput = {
   startDate: '',
-  endDate: '',
+  endDate: today,
   threeMonthBasePay: 0,
   threeMonthBonus: 0,
   annualLeaveAllowance: 0,
@@ -33,6 +35,15 @@ const Calculator = () => {
 
   const handleChange = (key: keyof SeveranceInput, value: string) => {
     const field = FORM_FIELDS.find(f => f.key === key)
+
+    if (field?.type === 'date' && value) {
+      const [year] = value.split('-')
+      if (year && year.length > 4) return
+      setForm(prev => ({ ...prev, [key]: value }))
+      setHasCalculated(false)
+      return
+    }
+
     setForm(prev => ({
       ...prev,
       [key]: field?.type === 'number' ? Number(value.replace(/[^0-9]/g, '')) : value,
@@ -85,6 +96,7 @@ const Calculator = () => {
                     type="date"
                     value={form[field.key] as string}
                     onChange={e => handleChange(field.key, e.target.value)}
+                    max="9999-12-31"
                     aria-label={field.label}
                     style={{
                       width: '100%',
