@@ -1,7 +1,61 @@
-import { useState } from 'react'
-import { Button } from '@toss/tds-mobile'
+import { useState, lazy, Suspense } from 'react'
 import type { SeveranceInput, SeveranceResult } from '../utils/severance'
 import { calculateSeverance, formatKoreanWon, formatWorkPeriod } from '../utils/severance'
+
+const isAIT = import.meta.env.VITE_BUILD_TARGET !== 'web'
+
+const TDSButton = isAIT ? lazy(() => import('@toss/tds-mobile').then(m => ({ default: m.Button }))) : null
+
+type ButtonProps = {
+  onClick?: () => void
+  disabled?: boolean
+  children: React.ReactNode
+  variant?: 'fill' | 'weak'
+  size?: 'xlarge' | 'medium'
+  'aria-label'?: string
+}
+
+const AppButton = ({ onClick, disabled, children, variant = 'fill', size = 'xlarge', 'aria-label': ariaLabel }: ButtonProps) => {
+  if (isAIT && TDSButton) {
+    return (
+      <Suspense fallback={null}>
+        <TDSButton
+          size={size}
+          variant={variant}
+          color="primary"
+          display="full"
+          disabled={disabled}
+          onClick={onClick}
+          aria-label={ariaLabel}
+        >
+          {children}
+        </TDSButton>
+      </Suspense>
+    )
+  }
+
+  const isPrimary = variant === 'fill'
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      style={{
+        width: '100%',
+        backgroundColor: isPrimary ? (disabled ? '#93C5FD' : '#3182F6') : 'transparent',
+        color: isPrimary ? '#fff' : '#3182F6',
+        fontWeight: 700,
+        fontSize: size === 'xlarge' ? 15 : 14,
+        padding: size === 'xlarge' ? '16px 0' : '10px 0',
+        borderRadius: 16,
+        border: isPrimary ? 'none' : 'none',
+        cursor: disabled ? 'default' : 'pointer',
+      }}
+    >
+      {children}
+    </button>
+  )
+}
 
 type FormField = {
   label: string
@@ -123,17 +177,15 @@ const Calculator = () => {
 
         {/* 계산 버튼 — TDS Button */}
         <div style={{ margin: '0 16px 12px' }}>
-          <Button
+          <AppButton
             size="xlarge"
             variant="fill"
-            color="primary"
-            display="full"
             disabled={!isFormValid}
             onClick={handleCalculate}
             aria-label="퇴직금 계산하기"
           >
             퇴직금 계산하기
-          </Button>
+          </AppButton>
         </div>
 
         {/* 결과 */}
@@ -173,16 +225,14 @@ const Calculator = () => {
             )}
 
             {/* 다시 계산 */}
-            <Button
+            <AppButton
               size="medium"
               variant="weak"
-              color="primary"
-              display="full"
               onClick={handleReset}
               aria-label="다시 계산하기"
             >
               다시 계산하기
-            </Button>
+            </AppButton>
           </div>
         )}
 
