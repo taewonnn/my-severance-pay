@@ -1,8 +1,12 @@
-import { useState, lazy, Suspense } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import type { SeveranceInput, SeveranceResult } from '../utils/severance'
 import { calculateSeverance, formatKoreanWon, formatWorkPeriod } from '../utils/severance'
+import { loadFullScreenAd, showFullScreenAd } from '@apps-in-toss/web-framework'
 
 const isAIT = import.meta.env.VITE_BUILD_TARGET !== 'web'
+const AD_GROUP_ID = import.meta.env.DEV
+  ? 'ait-ad-test-interstitial-id'
+  : 'ait.v2.live.7afd8709b1a149c1'
 
 const TDSButton = isAIT ? lazy(() => import('@toss/tds-mobile').then(m => ({ default: m.Button }))) : null
 
@@ -88,6 +92,17 @@ const Calculator = () => {
   const [result, setResult] = useState<SeveranceResult | null>(null)
   const [hasCalculated, setHasCalculated] = useState(false)
 
+  useEffect(() => {
+    console.log('[Ad] isAIT:', isAIT)
+    console.log('[Ad] loadFullScreenAd.isSupported():', loadFullScreenAd.isSupported())
+    if (!isAIT || !loadFullScreenAd.isSupported()) return
+    loadFullScreenAd({
+      options: { adGroupId: AD_GROUP_ID },
+      onEvent: (data) => console.log('[Ad] load event:', data),
+      onError: (e) => console.error('[Ad] load error:', e),
+    })
+  }, [])
+
   const handleChange = (key: keyof SeveranceInput, value: string) => {
     const field = FORM_FIELDS.find(f => f.key === key)
 
@@ -110,8 +125,27 @@ const Calculator = () => {
 
   const handleCalculate = () => {
     if (!isFormValid) return
-    setResult(calculateSeverance(form))
-    setHasCalculated(true)
+
+    const calculated = calculateSeverance(form)
+
+    if (isAIT && showFullScreenAd.isSupported()) {
+      showFullScreenAd({
+        options: { adGroupId: AD_GROUP_ID },
+        onEvent: (data) => {
+          if (data.type === 'dismissed' || data.type === 'failedToShow') {
+            setResult(calculated)
+            setHasCalculated(true)
+          }
+        },
+        onError: () => {
+          setResult(calculated)
+          setHasCalculated(true)
+        },
+      })
+    } else {
+      setResult(calculated)
+      setHasCalculated(true)
+    }
   }
 
   const handleReset = () => {
